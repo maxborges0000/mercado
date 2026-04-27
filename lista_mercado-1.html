@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras — Mercado</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FDF8F0;
+  --green-dark: #1B5E3B;
+  --green: #2E7D52;
+  --green-light: #E8F5EE;
+  --orange: #E8651A;
+  --orange-light: #FFF3E8;
+  --blue: #1565C0;
+  --blue-light: #E3F0FF;
+  --red: #C62828;
+  --red-light: #FDEAEA;
+  --teal: #00796B;
+  --teal-light: #E0F2F0;
+  --purple: #6A1B9A;
+  --purple-light: #F3E8FF;
+  --yellow: #F57F17;
+  --yellow-light: #FFFDE7;
+  --pink: #AD1457;
+  --pink-light: #FCE4EC;
+  --indigo: #283593;
+  --indigo-light: #E8EAF6;
+  --shadow: 0 4px 16px rgba(0,0,0,0.10);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(46,125,82,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(232,101,26,0.06) 0%, transparent 50%);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* ── HEADER ── */
+.site-header {
+  background: var(--green-dark);
+  position: relative;
+  overflow: hidden;
+  padding: 28px 20px 20px;
+  text-align: center;
+}
+.site-header::before {
+  content: '';
+  position: absolute; top: -40px; left: -60px;
+  width: 200px; height: 200px;
+  background: rgba(255,255,255,0.04); border-radius: 50%;
+}
+.site-header::after {
+  content: '';
+  position: absolute; bottom: -60px; right: -40px;
+  width: 180px; height: 180px;
+  background: rgba(255,255,255,0.04); border-radius: 50%;
+}
+.brush-title {
+  display: inline-block;
+  background: var(--green); color: #fff;
+  font-family: 'Fredoka One', cursive;
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  padding: 8px 32px 6px; border-radius: 6px;
+  letter-spacing: 0.03em; position: relative; z-index: 1;
+  transform: rotate(-1deg);
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+}
+.subtitle-script {
+  font-family: 'Patrick Hand', cursive;
+  font-size: clamp(1.4rem, 4vw, 2rem);
+  color: #A5D6B0; margin-top: 4px; position: relative; z-index: 1;
+}
+.header-tagline {
+  color: rgba(255,255,255,0.55); font-size: 0.82rem;
+  letter-spacing: 0.15em; text-transform: uppercase; margin-top: 6px; position: relative; z-index: 1;
+}
+.header-emojis {
+  font-size: 2rem; margin-top: 8px; position: relative; z-index: 1;
+  display: flex; justify-content: center; align-items: center; gap: 12px;
+}
+.total-pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.12); border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 50px; padding: 8px 22px; margin-top: 14px;
+  position: relative; z-index: 1; backdrop-filter: blur(4px);
+}
+.total-pill .tl { color: rgba(255,255,255,0.6); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+.total-pill .tv { font-family: 'Fredoka One', cursive; font-size: 1.5rem; color: #fff; letter-spacing: 0.02em; }
+
+/* ── PROGRESS BAR ── */
+.progress-wrap {
+  background: var(--green-dark); padding: 0 20px 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.prog-track { flex: 1; height: 8px; background: rgba(255,255,255,0.15); border-radius: 99px; overflow: hidden; }
+.prog-fill { height: 100%; background: linear-gradient(90deg, #69D09A, #A5D6B0); border-radius: 99px; transition: width 0.4s ease; width: 0%; }
+.prog-label { color: rgba(255,255,255,0.55); font-size: 0.75rem; white-space: nowrap; }
+.prog-pct { color: #A5D6B0; font-weight: 800; font-size: 0.82rem; white-space: nowrap; }
+
+/* ── FILTERS ── */
+.filters-wrap {
+  padding: 16px 16px 4px; display: flex; gap: 8px;
+  flex-wrap: wrap; justify-content: center;
+}
+.flt {
+  padding: 6px 16px; border-radius: 50px; border: 2px solid transparent;
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.78rem;
+  cursor: pointer; display: flex; align-items: center; gap: 5px;
+  transition: all 0.15s; background: #fff; color: #555; box-shadow: var(--shadow-sm);
+}
+.flt:hover { transform: translateY(-1px); box-shadow: var(--shadow); }
+.flt.active-all       { background: var(--green-dark); color: #fff; border-color: var(--green-dark); }
+.flt.active-MERCEARIA { background: var(--orange);     color: #fff; border-color: var(--orange); }
+.flt.active-CARNES    { background: var(--red);        color: #fff; border-color: var(--red); }
+.flt.active-FRIOS     { background: var(--purple);     color: #fff; border-color: var(--purple); }
+.flt.active-HORTIFRUTI{ background: var(--green);      color: #fff; border-color: var(--green); }
+.flt.active-LIMPEZA   { background: var(--teal);       color: #fff; border-color: var(--teal); }
+.flt.active-BEBIDAS   { background: var(--blue);       color: #fff; border-color: var(--blue); }
+.flt.active-PADARIA   { background: var(--yellow);     color: #fff; border-color: var(--yellow); }
+.flt.active-HIGIENE   { background: var(--pink);       color: #fff; border-color: var(--pink); }
+.flt.active-OUTROS    { background: var(--indigo);     color: #fff; border-color: var(--indigo); }
+
+/* ── ACTIONS BAR ── */
+.actions-bar {
+  display: flex; gap: 10px; padding: 8px 16px 0;
+  max-width: 1100px; margin: 0 auto; justify-content: flex-end; flex-wrap: wrap;
+}
+.btn-action {
+  display: flex; align-items: center; gap: 7px;
+  padding: 9px 18px; border-radius: 50px;
+  font-family: 'Nunito', sans-serif; font-weight: 700; font-size: 0.82rem;
+  cursor: pointer; border: 2px solid transparent;
+  transition: all 0.18s; box-shadow: var(--shadow-sm);
+}
+.btn-action:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.btn-add-item { background: var(--green); color: #fff; border-color: var(--green); }
+.btn-add-cat  { background: #fff; color: var(--green-dark); border-color: var(--green-dark); }
+
+/* ── MAIN GRID ── */
+.main-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px; padding: 16px 16px; max-width: 1100px; margin: 0 auto;
+}
+
+/* ── CATEGORY CARD ── */
+.cat-card {
+  background: #fff; border-radius: 18px; overflow: hidden;
+  box-shadow: var(--shadow); transition: opacity 0.2s, transform 0.2s;
+  animation: popIn 0.4s ease both;
+}
+.cat-card.hidden { display: none; }
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* category header strip */
+.cat-strip {
+  padding: 13px 18px; display: flex; align-items: center; justify-content: space-between;
+}
+.cat-strip .left { display: flex; align-items: center; gap: 9px; }
+.cat-strip .icon { font-size: 1.4rem; }
+.cat-strip .cname { font-family: 'Fredoka One', cursive; font-size: 1.05rem; letter-spacing: 0.04em; color: #fff; }
+.cat-strip .strip-right { display: flex; align-items: center; gap: 8px; }
+.cat-strip .ctotal { font-family: 'Fredoka One', cursive; font-size: 1rem; color: rgba(255,255,255,0.9); background: rgba(0,0,0,0.15); padding: 3px 10px; border-radius: 50px; }
+
+/* delete category button */
+.btn-del-cat {
+  background: rgba(255,255,255,0.2); border: none; border-radius: 50%;
+  width: 24px; height: 24px; cursor: pointer; color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: background 0.15s; line-height: 1;
+}
+.btn-del-cat:hover { background: rgba(255,0,0,0.35); }
+
+/* category colors */
+.cat-MERCEARIA  .cat-strip { background: linear-gradient(135deg, #E8651A, #F5A623); }
+.cat-CARNES     .cat-strip { background: linear-gradient(135deg, #C62828, #E53935); }
+.cat-FRIOS      .cat-strip { background: linear-gradient(135deg, #6A1B9A, #8E24AA); }
+.cat-HORTIFRUTI .cat-strip { background: linear-gradient(135deg, #2E7D52, #43A047); }
+.cat-LIMPEZA    .cat-strip { background: linear-gradient(135deg, #00796B, #00897B); }
+.cat-BEBIDAS    .cat-strip { background: linear-gradient(135deg, #1565C0, #1976D2); }
+.cat-PADARIA    .cat-strip { background: linear-gradient(135deg, #F57F17, #FB8C00); }
+.cat-HIGIENE    .cat-strip { background: linear-gradient(135deg, #AD1457, #D81B60); }
+.cat-OUTROS     .cat-strip { background: linear-gradient(135deg, #283593, #3949AB); }
+/* custom categories get fallback gradient applied via JS */
+
+.cat-MERCEARIA  { background: var(--orange-light); }
+.cat-CARNES     { background: var(--red-light); }
+.cat-FRIOS      { background: var(--purple-light); }
+.cat-HORTIFRUTI { background: var(--green-light); }
+.cat-LIMPEZA    { background: var(--teal-light); }
+.cat-BEBIDAS    { background: var(--blue-light); }
+.cat-PADARIA    { background: var(--yellow-light); }
+.cat-HIGIENE    { background: var(--pink-light); }
+.cat-OUTROS     { background: var(--indigo-light); }
+
+/* items list */
+.items-list { padding: 8px 0; }
+.item-row {
+  display: grid; grid-template-columns: 28px 1fr auto auto auto auto;
+  align-items: center; gap: 8px; padding: 9px 16px;
+  border-bottom: 1px dashed rgba(0,0,0,0.07);
+  transition: background 0.15s, opacity 0.2s; background: rgba(255,255,255,0.5);
+}
+.item-row:last-child { border-bottom: none; }
+.item-row:hover { background: rgba(255,255,255,0.85); }
+.item-row.checked { opacity: 0.4; }
+.item-row.checked .iname { text-decoration: line-through; }
+
+/* delete item button */
+.btn-del-item {
+  background: none; border: none; cursor: pointer;
+  color: #ccc; font-size: 1rem; line-height: 1;
+  padding: 2px 4px; border-radius: 4px; transition: color 0.15s;
+  display: flex; align-items: center;
+}
+.btn-del-item:hover { color: var(--red); }
+
+/* custom checkbox */
+.cb-wrap { position: relative; width: 22px; height: 22px; flex-shrink: 0; }
+.cb-wrap input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cb-box {
+  width: 22px; height: 22px; border-radius: 6px; border: 2.5px solid #ccc;
+  background: #fff; cursor: pointer; display: flex; align-items: center;
+  justify-content: center; transition: all 0.15s; font-size: 13px;
+}
+.cb-wrap input:checked + .cb-box { border-color: transparent; color: #fff; }
+.cat-MERCEARIA  .cb-wrap input:checked + .cb-box { background: var(--orange); }
+.cat-CARNES     .cb-wrap input:checked + .cb-box { background: var(--red); }
+.cat-FRIOS      .cb-wrap input:checked + .cb-box { background: var(--purple); }
+.cat-HORTIFRUTI .cb-wrap input:checked + .cb-box { background: var(--green); }
+.cat-LIMPEZA    .cb-wrap input:checked + .cb-box { background: var(--teal); }
+.cat-BEBIDAS    .cb-wrap input:checked + .cb-box { background: var(--blue); }
+.cat-PADARIA    .cb-wrap input:checked + .cb-box { background: var(--yellow); }
+.cat-HIGIENE    .cb-wrap input:checked + .cb-box { background: var(--pink); }
+.cat-OUTROS     .cb-wrap input:checked + .cb-box { background: var(--indigo); }
+
+.iname { font-weight: 700; font-size: 0.88rem; color: #222; }
+.iun   { font-size: 0.68rem; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 1px; }
+
+.qty-ctrl { display: flex; align-items: center; background: rgba(255,255,255,0.7); border: 1.5px solid rgba(0,0,0,0.1); border-radius: 50px; overflow: hidden; }
+.qbtn { width: 22px; height: 22px; background: none; border: none; cursor: pointer; font-size: 0.9rem; color: #555; display: flex; align-items: center; justify-content: center; transition: background 0.1s; line-height: 1; }
+.qbtn:hover { background: rgba(0,0,0,0.08); }
+.qval { min-width: 26px; text-align: center; font-weight: 800; font-size: 0.82rem; color: #222; font-family: 'Nunito', sans-serif; }
+
+.price-inp { width: 58px; background: rgba(255,255,255,0.7); border: 1.5px dashed rgba(0,0,0,0.15); border-radius: 6px; padding: 3px 5px; text-align: right; font-family: 'Nunito', sans-serif; font-size: 0.78rem; color: #555; font-weight: 600; transition: border-color 0.15s, background 0.15s; }
+.price-inp:focus { outline: none; background: #fff; border-style: solid; }
+.cat-MERCEARIA  .price-inp:focus { border-color: var(--orange); }
+.cat-CARNES     .price-inp:focus { border-color: var(--red); }
+.cat-FRIOS      .price-inp:focus { border-color: var(--purple); }
+.cat-HORTIFRUTI .price-inp:focus { border-color: var(--green); }
+.cat-LIMPEZA    .price-inp:focus { border-color: var(--teal); }
+.cat-BEBIDAS    .price-inp:focus { border-color: var(--blue); }
+.cat-PADARIA    .price-inp:focus { border-color: var(--yellow); }
+.cat-HIGIENE    .price-inp:focus { border-color: var(--pink); }
+.cat-OUTROS     .price-inp:focus { border-color: var(--indigo); }
+
+.isub { font-weight: 800; font-size: 0.82rem; color: #333; min-width: 60px; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ── ADD ITEM ROW inline ── */
+.add-item-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 6px; padding: 10px 14px 12px;
+  background: rgba(255,255,255,0.7);
+  border-top: 1px dashed rgba(0,0,0,0.1);
+  align-items: center;
+}
+.add-item-row input[type="text"], .add-item-row input[type="number"] {
+  font-family: 'Nunito', sans-serif; font-size: 0.8rem; font-weight: 600;
+  border: 1.5px solid rgba(0,0,0,0.15); border-radius: 7px;
+  padding: 5px 8px; background: #fff; color: #333; width: 100%;
+  transition: border-color 0.15s;
+}
+.add-item-row input:focus { outline: none; border-color: var(--green); }
+.add-item-row input[type="number"] { width: 56px; text-align: right; }
+.add-item-row .add-un { width: 46px; font-size: 0.75rem; }
+.add-item-row .btn-save-item {
+  background: var(--green); color: #fff; border: none; border-radius: 7px;
+  padding: 6px 12px; cursor: pointer; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: 0.78rem; transition: background 0.15s; white-space: nowrap;
+}
+.add-item-row .btn-save-item:hover { background: var(--green-dark); }
+
+/* ── SUMMARY CARD ── */
+.summary-card { max-width: 1100px; margin: 4px auto 0; padding: 0 16px; }
+.sum-inner { background: var(--green-dark); border-radius: 18px; padding: 24px 28px; position: relative; overflow: hidden; box-shadow: var(--shadow); }
+.sum-inner::before { content: '🛒'; position: absolute; right: 20px; bottom: -10px; font-size: 5rem; opacity: 0.12; }
+.sum-title { font-family: 'Fredoka One', cursive; color: rgba(255,255,255,0.5); font-size: 0.8rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; }
+.sum-cats { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+.sum-cat-pill { background: rgba(255,255,255,0.1); border-radius: 10px; padding: 8px 14px; color: #fff; flex: 1; min-width: 120px; }
+.sum-cat-pill .sp-name { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(255,255,255,0.55); margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
+.sum-cat-pill .sp-val { font-family: 'Fredoka One', cursive; font-size: 1.1rem; color: #fff; }
+.sum-total-row { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 16px; display: flex; justify-content: space-between; align-items: center; }
+.sum-total-row .stl { font-family: 'Fredoka One', cursive; color: rgba(255,255,255,0.6); font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase; }
+.sum-total-row .stv { font-family: 'Fredoka One', cursive; font-size: 2.2rem; color: #fff; line-height: 1; }
+
+/* ── FOOTER ── */
+.site-footer { text-align: center; padding: 24px 16px 12px; color: #aaa; font-size: 0.75rem; letter-spacing: 0.08em; }
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,0.45); backdrop-filter: blur(3px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: #fff; border-radius: 20px; width: 100%; max-width: 440px;
+  padding: 28px 28px 24px; box-shadow: 0 16px 48px rgba(0,0,0,0.22);
+  animation: slideUp 0.22s ease;
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-title {
+  font-family: 'Fredoka One', cursive; font-size: 1.4rem;
+  color: var(--green-dark); margin-bottom: 18px; display: flex; align-items: center; gap: 8px;
+}
+.modal-field { margin-bottom: 14px; }
+.modal-field label { display: block; font-weight: 700; font-size: 0.8rem; color: #555; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em; }
+.modal-field input, .modal-field select {
+  width: 100%; font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 600;
+  border: 2px solid #ddd; border-radius: 10px; padding: 9px 12px;
+  color: #333; transition: border-color 0.15s; background: #fafafa;
+}
+.modal-field input:focus, .modal-field select:focus { outline: none; border-color: var(--green); background: #fff; }
+.modal-field .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.btn-cancel {
+  padding: 10px 22px; border-radius: 50px; border: 2px solid #ddd;
+  background: #fff; color: #666; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-cancel:hover { border-color: #bbb; background: #f5f5f5; }
+.btn-confirm {
+  padding: 10px 22px; border-radius: 50px; border: none;
+  background: var(--green); color: #fff; font-family: 'Nunito', sans-serif;
+  font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-confirm:hover { background: var(--green-dark); transform: translateY(-1px); }
+
+/* emoji picker row */
+.emoji-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.emoji-opt {
+  font-size: 1.4rem; cursor: pointer; padding: 4px 6px; border-radius: 8px;
+  border: 2px solid transparent; transition: all 0.12s;
+}
+.emoji-opt:hover, .emoji-opt.sel { border-color: var(--green); background: var(--green-light); }
+
+/* color palette */
+.color-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.color-opt {
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  border: 3px solid transparent; transition: all 0.12s; outline: none;
+}
+.color-opt:hover, .color-opt.sel { border-color: #333; transform: scale(1.15); }
+
+/* toast */
+.toast {
+  position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--green-dark); color: #fff; padding: 10px 22px;
+  border-radius: 50px; font-weight: 700; font-size: 0.85rem;
+  box-shadow: var(--shadow); z-index: 1000; transition: transform 0.3s ease;
+  white-space: nowrap; pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="brush-title">LISTA DE COMPRAS</div>
+  <div class="subtitle-script">Mercado</div>
+  <div class="header-tagline">Organize • Planeje • Economize</div>
+  <div class="header-emojis">
+    <span>🧺</span><span>🥦</span><span>🥩</span><span>🧀</span><span>🫧</span>
+  </div>
+  <div class="total-pill">
+    <span class="tl">Total Geral</span>
+    <span class="tv" id="header-total">R$ 0,00</span>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <span class="prog-label" id="prog-label">0 de 0 itens</span>
+  <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+  <span class="prog-pct" id="prog-pct">0%</span>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-wrap" id="filters-wrap">
+  <button class="flt active-all" onclick="doFilter('TODAS', this)">🛒 Todas</button>
+</div>
+
+<!-- ACTIONS -->
+<div class="actions-bar">
+  <button class="btn-action btn-add-cat" onclick="openCatModal()">✦ Nova categoria</button>
+  <button class="btn-action btn-add-item" onclick="openItemModal()">＋ Novo item</button>
+</div>
+
+<!-- CARDS GRID -->
+<div class="main-grid" id="grid"></div>
+
+<!-- SUMMARY -->
+<div class="summary-card">
+  <div class="sum-inner">
+    <div class="sum-title">📊 Resumo por Categoria</div>
+    <div class="sum-cats" id="sum-cats"></div>
+    <div class="sum-total-row">
+      <span class="stl">🛒 Total Geral</span>
+      <span class="stv" id="grand-total">R$ 0,00</span>
+    </div>
+  </div>
+</div>
+
+<div class="site-footer">Planejou, comprou, economizou! 🛒 ♡</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: Add Item -->
+<div class="modal-overlay" id="modal-item">
+  <div class="modal-box">
+    <div class="modal-title">🛍️ Adicionar Item</div>
+    <div class="modal-field">
+      <label>Categoria</label>
+      <select id="item-cat"></select>
+    </div>
+    <div class="modal-field">
+      <label>Nome do Item</label>
+      <input type="text" id="item-name" placeholder="Ex: Arroz, Feijão…">
+    </div>
+    <div class="modal-field">
+      <div class="row2">
+        <div>
+          <label>Quantidade</label>
+          <input type="number" id="item-qty" value="1" min="0.5" step="0.5">
+        </div>
+        <div>
+          <label>Unidade</label>
+          <input type="text" id="item-un" placeholder="un, kg, cx…">
+        </div>
+      </div>
+    </div>
+    <div class="modal-field">
+      <label>Preço Unitário (R$)</label>
+      <input type="number" id="item-price" value="0" min="0" step="0.01">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-item')">Cancelar</button>
+      <button class="btn-confirm" onclick="saveItem()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add Category -->
+<div class="modal-overlay" id="modal-cat">
+  <div class="modal-box">
+    <div class="modal-title">🗂️ Nova Categoria</div>
+    <div class="modal-field">
+      <label>Nome da Categoria</label>
+      <input type="text" id="cat-name" placeholder="Ex: Bebidas, Padaria…">
+    </div>
+    <div class="modal-field">
+      <label>Ícone</label>
+      <div class="emoji-row" id="emoji-row"></div>
+    </div>
+    <div class="modal-field">
+      <label>Cor</label>
+      <div class="color-row" id="color-row"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-cat')">Cancelar</button>
+      <button class="btn-confirm" onclick="saveCat()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── PALETTE ───────────────────────────────────────────────────────────────
+const EMOJIS = ['🛒','🍎','🧃','🥤','🍞','🧁','🍖','🐟','🥚','🧈','🫙','🌿','🧄','🧅','🥑','🍋','🍌','🍇','🧹','🧴','🪥','🧻','🛁','💊','🧲','📦'];
+const COLORS = [
+  {name:'Laranja',  grad:'#E8651A,#F5A623', bg:'#FFF3E8', hex:'#E8651A'},
+  {name:'Vermelho', grad:'#C62828,#E53935', bg:'#FDEAEA', hex:'#C62828'},
+  {name:'Roxo',     grad:'#6A1B9A,#8E24AA', bg:'#F3E8FF', hex:'#6A1B9A'},
+  {name:'Verde',    grad:'#2E7D52,#43A047', bg:'#E8F5EE', hex:'#2E7D52'},
+  {name:'Teal',     grad:'#00796B,#00897B', bg:'#E0F2F0', hex:'#00796B'},
+  {name:'Azul',     grad:'#1565C0,#1976D2', bg:'#E3F0FF', hex:'#1565C0'},
+  {name:'Amarelo',  grad:'#F57F17,#FB8C00', bg:'#FFFDE7', hex:'#F57F17'},
+  {name:'Rosa',     grad:'#AD1457,#D81B60', bg:'#FCE4EC', hex:'#AD1457'},
+  {name:'Índigo',   grad:'#283593,#3949AB', bg:'#E8EAF6', hex:'#283593'},
+  {name:'Cinza',    grad:'#455A64,#546E7A', bg:'#ECEFF1', hex:'#455A64'},
+];
+
+let selEmoji = EMOJIS[0];
+let selColor = COLORS[0];
+let nextId = 0;
+
+// ─── DATA ──────────────────────────────────────────────────────────────────
+const CAT_META = {
+  MERCEARIA:   { icon: '🌾', label: 'Mercearia',    grad:'#E8651A,#F5A623', bg:'#FFF3E8' },
+  CARNES:      { icon: '🥩', label: 'Carnes & Aves',grad:'#C62828,#E53935', bg:'#FDEAEA' },
+  FRIOS:       { icon: '🧀', label: 'Frios',         grad:'#6A1B9A,#8E24AA', bg:'#F3E8FF' },
+  HORTIFRUTI:  { icon: '🥦', label: 'Hortifruti',   grad:'#2E7D52,#43A047', bg:'#E8F5EE' },
+  LIMPEZA:     { icon: '🫧', label: 'Limpeza',       grad:'#00796B,#00897B', bg:'#E0F2F0' },
+};
+
+const ITEMS_INIT = [
+  {cat:'MERCEARIA', name:'Arroz',            qty:2,   un:'un',   price:15.00},
+  {cat:'MERCEARIA', name:'Feijão',           qty:3,   un:'un',   price:5.60},
+  {cat:'MERCEARIA', name:'Óleo',             qty:3,   un:'un',   price:6.50},
+  {cat:'MERCEARIA', name:'Leite',            qty:12,  un:'un',   price:5.60},
+  {cat:'MERCEARIA', name:'Creme de leite',   qty:10,  un:'un',   price:2.59},
+  {cat:'MERCEARIA', name:'Leite condensado', qty:6,   un:'un',   price:5.50},
+  {cat:'MERCEARIA', name:'Milho',            qty:10,  un:'un',   price:2.59},
+  {cat:'MERCEARIA', name:'Macarrão',         qty:8,   un:'un',   price:3.10},
+  {cat:'MERCEARIA', name:'Extrato de tomate',qty:10,  un:'un',   price:1.30},
+  {cat:'MERCEARIA', name:'Açúcar',           qty:1,   un:'un',   price:13.00},
+  {cat:'MERCEARIA', name:'Miojo',            qty:10,  un:'un',   price:2.59},
+  {cat:'MERCEARIA', name:'Ketchup',          qty:1,   un:'kg',   price:12.00},
+  {cat:'MERCEARIA', name:'Achocolatado',     qty:1,   un:'un',   price:12.00},
+  {cat:'MERCEARIA', name:'Pão de forma',     qty:3,   un:'un',   price:8.00},
+  {cat:'CARNES',    name:'Frango',           qty:4,   un:'un',   price:17.00},
+  {cat:'CARNES',    name:'Linguiça',         qty:2,   un:'un',   price:18.00},
+  {cat:'CARNES',    name:'Coxa e sobrecoxa', qty:3,   un:'un',   price:10.00},
+  {cat:'CARNES',    name:'Carne moída',      qty:2,   un:'kg',   price:26.00},
+  {cat:'CARNES',    name:'Paleta grossa',    qty:1.5, un:'kg',   price:40.00},
+  {cat:'CARNES',    name:'Calabresa',        qty:1,   un:'kg',   price:35.00},
+  {cat:'CARNES',    name:'Manta de bacon',   qty:1,   un:'un',   price:45.00},
+  {cat:'CARNES',    name:'Hambúrguer',       qty:1,   un:'cx',   price:29.00},
+  {cat:'FRIOS',     name:'Queijo',           qty:1,   un:'peça', price:20.00},
+  {cat:'FRIOS',     name:'Presunto',         qty:1,   un:'peça', price:20.00},
+  {cat:'FRIOS',     name:'Manteiga',         qty:1,   un:'kg',   price:11.00},
+  {cat:'HORTIFRUTI',name:'Batata',           qty:2,   un:'kg',   price:4.99},
+  {cat:'HORTIFRUTI',name:'Pimentão',         qty:1,   un:'kg',   price:8.00},
+  {cat:'HORTIFRUTI',name:'Cenoura',          qty:1,   un:'kg',   price:4.00},
+  {cat:'HORTIFRUTI',name:'Beterraba',        qty:1,   un:'kg',   price:5.00},
+  {cat:'HORTIFRUTI',name:'Cheiro verde',     qty:2,   un:'un',   price:2.10},
+  {cat:'LIMPEZA',   name:'Amaciante',        qty:1,   un:'un',   price:20.00},
+  {cat:'LIMPEZA',   name:'Detergente',       qty:5,   un:'un',   price:1.90},
+  {cat:'LIMPEZA',   name:'Qboa',             qty:2,   un:'un',   price:3.50},
+];
+
+// state
+let state = [];
+ITEMS_INIT.forEach(it => {
+  state.push({ id: nextId++, checked: false, ...it });
+});
+
+// ─── UTILS ─────────────────────────────────────────────────────────────────
+function fmt(v) {
+  return 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function slugify(str) {
+  return str.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z0-9]/g,'_');
+}
+
+// ─── ITEM LOGIC ─────────────────────────────────────────────────────────────
+function getQty(id) {
+  const el = document.getElementById(`qv-${id}`);
+  return el ? (parseFloat(el.textContent) || 0) : 0;
+}
+function getPrice(id) {
+  const el = document.getElementById(`pi-${id}`);
+  return el ? (parseFloat(el.value.replace(',', '.')) || 0) : 0;
+}
+function updateRow(id) {
+  const sub = getQty(id) * getPrice(id);
+  const el = document.getElementById(`sub-${id}`);
+  if (el) el.textContent = fmt(sub);
+  recalcAll();
+}
+function changeQty(id, delta) {
+  const el = document.getElementById(`qv-${id}`);
+  if (!el) return;
+  const curr = parseFloat(el.textContent) || 0;
+  const next = Math.max(0, curr + delta);
+  el.textContent = next % 1 === 0 ? next : next.toFixed(1);
+  // sync state
+  const item = state.find(s => s.id === id);
+  if (item) item.qty = next;
+  updateRow(id);
+}
+function toggleCheck(id) {
+  const cb = document.getElementById(`cb-${id}`);
+  const item = state.find(s => s.id === id);
+  if (item) item.checked = cb.checked;
+  const row = document.getElementById(`row-${id}`);
+  row.classList.toggle('checked', cb.checked);
+  updateProgress();
+}
+function deleteItem(id) {
+  state = state.filter(s => s.id !== id);
+  render();
+  showToast('Item removido');
+}
+
+// ─── CATEGORY LOGIC ─────────────────────────────────────────────────────────
+function deleteCategory(catKey) {
+  if (!confirm(`Remover a categoria "${CAT_META[catKey].label}" e todos os seus itens?`)) return;
+  state = state.filter(s => s.cat !== catKey);
+  delete CAT_META[catKey];
+  // remove filter button
+  const btn = document.querySelector(`.flt[data-cat="${catKey}"]`);
+  if (btn) btn.remove();
+  render();
+  showToast('Categoria removida');
+}
+
+// ─── RECALC ─────────────────────────────────────────────────────────────────
+function recalcAll() {
+  let grand = 0;
+  const cats = {};
+  state.forEach(item => {
+    const sub = getQty(item.id) * getPrice(item.id);
+    cats[item.cat] = (cats[item.cat] || 0) + sub;
+    grand += sub;
+  });
+
+  Object.entries(cats).forEach(([cat, total]) => {
+    const el = document.getElementById(`ct-${cat}`);
+    if (el) el.textContent = fmt(total);
+  });
+  document.getElementById('header-total').textContent = fmt(grand);
+  document.getElementById('grand-total').textContent = fmt(grand);
+
+  const sc = document.getElementById('sum-cats');
+  sc.innerHTML = Object.entries(cats).map(([cat, total]) => {
+    const m = CAT_META[cat];
+    if (!m) return '';
+    return `<div class="sum-cat-pill">
+      <div class="sp-name">${m.icon} ${m.label}</div>
+      <div class="sp-val">${fmt(total)}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateProgress() {
+  const total = state.length;
+  const done = state.filter(s => s.checked).length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog-label').textContent = `${done} de ${total} itens`;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '%';
+}
+
+// ─── FILTER ─────────────────────────────────────────────────────────────────
+let activeFilter = 'TODAS';
+function doFilter(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.flt').forEach(b => b.className = 'flt');
+  btn.classList.add(cat === 'TODAS' ? 'active-all' : `active-${cat}`);
+  document.querySelectorAll('.cat-card').forEach(c => {
+    c.classList.toggle('hidden', cat !== 'TODAS' && c.dataset.cat !== cat);
+  });
+}
+
+// ─── RENDER ─────────────────────────────────────────────────────────────────
+function getCatStyle(catKey) {
+  const m = CAT_META[catKey];
+  if (!m) return '';
+  if (m.grad && m.bg) {
+    return `<style>
+      .cat-${catKey} .cat-strip { background: linear-gradient(135deg, ${m.grad}); }
+      .cat-${catKey} { background: ${m.bg}; }
+      .cat-${catKey} .cb-wrap input:checked + .cb-box { background: ${m.grad.split(',')[0]}; }
+      .cat-${catKey} .price-inp:focus { border-color: ${m.grad.split(',')[0]}; }
+    </style>`;
+  }
+  return '';
+}
+
+function renderItemRow(item) {
+  const step = item.un === 'kg' ? 0.5 : 1;
+  return `
+    <div class="item-row${item.checked?' checked':''}" id="row-${item.id}">
+      <label class="cb-wrap">
+        <input type="checkbox" id="cb-${item.id}" ${item.checked?'checked':''} onchange="toggleCheck(${item.id})">
+        <div class="cb-box">✓</div>
+      </label>
+      <div>
+        <div class="iname">${item.name}</div>
+        <div class="iun">${item.un}</div>
+      </div>
+      <div class="qty-ctrl">
+        <button class="qbtn" onclick="changeQty(${item.id}, -${step})">−</button>
+        <span class="qval" id="qv-${item.id}">${item.qty % 1 === 0 ? item.qty : item.qty.toFixed(1)}</span>
+        <button class="qbtn" onclick="changeQty(${item.id}, ${step})">+</button>
+      </div>
+      <input type="text" class="price-inp" id="pi-${item.id}"
+        value="${item.price.toFixed(2).replace('.', ',')}"
+        oninput="updateRow(${item.id})" onfocus="this.select()">
+      <div class="isub" id="sub-${item.id}">${fmt(item.qty * item.price)}</div>
+      <button class="btn-del-item" title="Remover item" onclick="deleteItem(${item.id})">✕</button>
+    </div>`;
+}
+
+function render() {
+  const cats = Object.keys(CAT_META).filter(cat => state.some(s => s.cat === cat));
+  const grid = document.getElementById('grid');
+
+  // inject dynamic styles for custom categories
+  let styleBlob = '';
+  cats.forEach(cat => {
+    const m = CAT_META[cat];
+    if (m.custom) {
+      styleBlob += `
+        .cat-${cat} .cat-strip { background: linear-gradient(135deg, ${m.grad}); }
+        .cat-${cat} { background: ${m.bg}; }
+        .cat-${cat} .cb-wrap input:checked + .cb-box { background: ${m.grad.split(',')[0]}; }
+        .cat-${cat} .price-inp:focus { border-color: ${m.grad.split(',')[0]}; }
+      `;
+    }
+  });
+  let dynStyle = document.getElementById('dyn-style');
+  if (!dynStyle) {
+    dynStyle = document.createElement('style');
+    dynStyle.id = 'dyn-style';
+    document.head.appendChild(dynStyle);
+  }
+  dynStyle.textContent = styleBlob;
+
+  grid.innerHTML = cats.map(cat => {
+    const items = state.filter(s => s.cat === cat);
+    const meta = CAT_META[cat];
+    const catTotal = items.reduce((s, i) => s + i.qty * i.price, 0);
+    const rows = items.map(renderItemRow).join('');
+    const isHidden = activeFilter !== 'TODAS' && activeFilter !== cat ? ' hidden' : '';
+
+    return `
+      <div class="cat-card cat-${cat}${isHidden}" data-cat="${cat}">
+        <div class="cat-strip">
+          <div class="left">
+            <span class="icon">${meta.icon}</span>
+            <span class="cname">${meta.label.toUpperCase()}</span>
+          </div>
+          <div class="strip-right">
+            <span class="ctotal" id="ct-${cat}">${fmt(catTotal)}</span>
+            <button class="btn-del-cat" title="Remover categoria" onclick="deleteCategory('${cat}')">✕</button>
+          </div>
+        </div>
+        <div class="items-list">${rows}</div>
+        <div class="add-item-row">
+          <input type="text" id="ni-name-${cat}" placeholder="Novo item…" onkeydown="if(event.key==='Enter')addInlineItem('${cat}')">
+          <input type="number" id="ni-qty-${cat}" value="1" min="0.5" step="0.5" style="width:52px">
+          <input type="text" id="ni-un-${cat}" placeholder="un" style="width:42px">
+          <button class="btn-save-item" onclick="addInlineItem('${cat}')">＋</button>
+        </div>
+      </div>`;
+  }).join('');
+
+  rebuildFilters();
+  recalcAll();
+  updateProgress();
+}
+
+// ─── INLINE ADD ITEM ────────────────────────────────────────────────────────
+function addInlineItem(cat) {
+  const nameEl = document.getElementById(`ni-name-${cat}`);
+  const qtyEl  = document.getElementById(`ni-qty-${cat}`);
+  const unEl   = document.getElementById(`ni-un-${cat}`);
+  const name = nameEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+  state.push({
+    id: nextId++, cat, checked: false,
+    name, qty: parseFloat(qtyEl.value) || 1,
+    un: unEl.value.trim() || 'un', price: 0
+  });
+  render();
+  showToast(`"${name}" adicionado!`);
+}
+
+// ─── MODAL: ITEM ─────────────────────────────────────────────────────────────
+function openItemModal(presetCat) {
+  const sel = document.getElementById('item-cat');
+  sel.innerHTML = Object.keys(CAT_META).map(k =>
+    `<option value="${k}">${CAT_META[k].icon} ${CAT_META[k].label}</option>`
+  ).join('');
+  if (presetCat) sel.value = presetCat;
+  document.getElementById('item-name').value = '';
+  document.getElementById('item-qty').value = '1';
+  document.getElementById('item-un').value = 'un';
+  document.getElementById('item-price').value = '0';
+  document.getElementById('modal-item').classList.add('open');
+  setTimeout(() => document.getElementById('item-name').focus(), 100);
+}
+
+function saveItem() {
+  const cat   = document.getElementById('item-cat').value;
+  const name  = document.getElementById('item-name').value.trim();
+  const qty   = parseFloat(document.getElementById('item-qty').value) || 1;
+  const un    = document.getElementById('item-un').value.trim() || 'un';
+  const price = parseFloat(document.getElementById('item-price').value) || 0;
+  if (!name) { document.getElementById('item-name').focus(); return; }
+  state.push({ id: nextId++, cat, checked: false, name, qty, un, price });
+  closeModal('modal-item');
+  render();
+  showToast(`"${name}" adicionado!`);
+}
+
+// ─── MODAL: CATEGORY ─────────────────────────────────────────────────────────
+function openCatModal() {
+  selEmoji = EMOJIS[0];
+  selColor = COLORS[0];
+  document.getElementById('cat-name').value = '';
+
+  const er = document.getElementById('emoji-row');
+  er.innerHTML = EMOJIS.map(e =>
+    `<span class="emoji-opt${e===selEmoji?' sel':''}" onclick="pickEmoji(this,'${e}')">${e}</span>`
+  ).join('');
+
+  const cr = document.getElementById('color-row');
+  cr.innerHTML = COLORS.map((c, i) =>
+    `<div class="color-opt${i===0?' sel':''}" style="background:${c.hex}" title="${c.name}" onclick="pickColor(this,${i})"></div>`
+  ).join('');
+
+  document.getElementById('modal-cat').classList.add('open');
+  setTimeout(() => document.getElementById('cat-name').focus(), 100);
+}
+
+function pickEmoji(el, emoji) {
+  selEmoji = emoji;
+  document.querySelectorAll('.emoji-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function pickColor(el, idx) {
+  selColor = COLORS[idx];
+  document.querySelectorAll('.color-opt').forEach(e => e.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+function saveCat() {
+  const rawName = document.getElementById('cat-name').value.trim();
+  if (!rawName) { document.getElementById('cat-name').focus(); return; }
+  const key = slugify(rawName);
+  if (CAT_META[key]) { alert('Já existe uma categoria com esse nome!'); return; }
+  CAT_META[key] = {
+    icon: selEmoji, label: rawName,
+    grad: selColor.grad, bg: selColor.bg, custom: true
+  };
+  closeModal('modal-cat');
+  render();
+  showToast(`Categoria "${rawName}" criada!`);
+}
+
+// ─── MODAL CLOSE ─────────────────────────────────────────────────────────────
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+// close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+// ─── REBUILD FILTERS ─────────────────────────────────────────────────────────
+function rebuildFilters() {
+  const wrap = document.getElementById('filters-wrap');
+  const cats = Object.keys(CAT_META).filter(cat => state.some(s => s.cat === cat));
+
+  // keep "Todas" button, rebuild rest
+  wrap.innerHTML = `<button class="flt${activeFilter==='TODAS'?' active-all':''}" onclick="doFilter('TODAS', this)">🛒 Todas</button>` +
+    cats.map(cat => {
+      const m = CAT_META[cat];
+      const isActive = activeFilter === cat;
+      const style = m.custom ? `style="background:${isActive ? m.grad.split(',')[0] : '#fff'};color:${isActive?'#fff':'#555'};border-color:${isActive?m.grad.split(',')[0]:'transparent'}"` : '';
+      return `<button class="flt${isActive&&!m.custom?' active-'+cat:''}" data-cat="${cat}" ${style} onclick="doFilter('${cat}', this)">${m.icon} ${m.label}</button>`;
+    }).join('');
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
